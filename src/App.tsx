@@ -168,7 +168,6 @@ export default function App() {
   const [chartMetric, setChartMetric] = useState<MetricMode>("gpuMs");
   const [sortMode, setSortMode] = useState<SortMode>("name");
   const [collapsedStages, setCollapsedStages] = useState<Record<string, boolean>>({});
-  const [selectedPrograms, setSelectedPrograms] = useState<Record<string, boolean>>({});
   const [history, setHistory] = useState<FrameSample[]>([]);
   const [hoveredPoint, setHoveredPoint] = useState<HoveredSeriesPoint | null>(null);
 
@@ -254,24 +253,6 @@ export default function App() {
   }, [collapsedStages, sortedStageGroups]);
   const visual = themeStyles[theme];
 
-  useEffect(() => {
-    if (!chartEnabled || entries.length === 0) {
-      return;
-    }
-
-    setSelectedPrograms((current) => {
-      if (Object.keys(current).length > 0) {
-        return current;
-      }
-
-      const initial: Record<string, boolean> = {};
-      for (const entry of entries) {
-        initial[buildProgramKey(entry)] = true;
-      }
-      return initial;
-    });
-  }, [chartEnabled, entries]);
-
   const chartLayout = useMemo(() => {
     if (!chartEnabled || history.length === 0) {
       return {
@@ -281,9 +262,7 @@ export default function App() {
       };
     }
 
-    const selectedKeys = Object.entries(selectedPrograms)
-      .filter(([key, enabled]) => enabled && expandedProgramKeys.has(key))
-      .map(([key]) => key);
+    const selectedKeys = Array.from(expandedProgramKeys);
 
     if (selectedKeys.length === 0) {
       return {
@@ -343,7 +322,7 @@ export default function App() {
       windowEnd,
       series,
     };
-  }, [chartEnabled, chartMetric, expandedProgramKeys, history, selectedPrograms]);
+  }, [chartEnabled, chartMetric, expandedProgramKeys, history]);
 
   const chartSeries = chartLayout.series;
 
@@ -355,7 +334,7 @@ export default function App() {
 
   useEffect(() => {
     setHoveredPoint(null);
-  }, [chartMetric, chartEnabled, selectedPrograms]);
+  }, [chartMetric, chartEnabled, collapsedStages]);
 
   const hoveredChartDetails = useMemo(() => {
     if (!chartEnabled || !hoveredPoint) {
@@ -621,7 +600,7 @@ export default function App() {
             </svg>
           </div>
           {chartSeries.length === 0 ? (
-            <div style={{ color: visual.muted }}>Select one or more programs to display lines.</div>
+            <div style={{ color: visual.muted }}>Expand one or more stages to display lines.</div>
           ) : null}
         </section>
       ) : null}
@@ -679,11 +658,6 @@ export default function App() {
           <tbody>
           {sortedStageGroups.map((group) => {
             const isCollapsed = collapsedStages[group.stageKey] ?? false;
-            const selectedCount = group.entries.reduce((count, stageEntry) => {
-              return count + (selectedPrograms[stageEntry.programKey] ? 1 : 0);
-            }, 0);
-            const allSelected = group.entries.length > 0 && selectedCount === group.entries.length;
-            const isIndeterminate = selectedCount > 0 && selectedCount < group.entries.length;
 
             return (
             <Fragment key={group.stageKey}>
@@ -720,33 +694,6 @@ export default function App() {
                       <span aria-hidden="true" style={{ fontSize: "0.8rem", lineHeight: 1 }}>{isCollapsed ? "▶" : "▼"}</span>
                       <span>{group.stageLabel}</span>
                     </button>
-                    <div style={{ display: "inline-flex", gap: "0.4rem", alignItems: "center" }}>
-                      {chartEnabled ? (
-                        <label style={{ display: "inline-flex", alignItems: "center", gap: "0.35rem", cursor: "pointer", color: visual.muted }}>
-                          <input
-                            type="checkbox"
-                            checked={allSelected}
-                            ref={(element) => {
-                              if (element) {
-                                element.indeterminate = isIndeterminate;
-                              }
-                            }}
-                            onChange={(event) => {
-                              const nextValue = event.target.checked;
-                              setSelectedPrograms((current) => {
-                                const next = { ...current };
-                                for (const stageEntry of group.entries) {
-                                  next[stageEntry.programKey] = nextValue;
-                                }
-                                return next;
-                              });
-                            }}
-                            aria-label={`Select programs for ${group.stageLabel}`}
-                          />
-                          <span>Select all</span>
-                        </label>
-                      ) : null}
-                    </div>
                   </div>
                 </td>
               </tr>
@@ -754,24 +701,8 @@ export default function App() {
                 ? group.entries.map((entry) => (
                 <tr key={entry.name}>
                   <td style={{ borderBottom: `1px solid ${visual.border}`, padding: "0.5rem 0.5rem 0.5rem 1.25rem" }}>
-                    {chartEnabled ? (
-                      <label style={{ display: "inline-flex", gap: "0.5rem", alignItems: "center", cursor: "pointer" }}>
-                        <input
-                          type="checkbox"
-                          checked={!!selectedPrograms[entry.programKey]}
-                          onChange={(event) => {
-                            setSelectedPrograms((current) => ({
-                              ...current,
-                              [entry.programKey]: event.target.checked,
-                            }));
-                          }}
-                        />
-                        <span style={{ color: colorForProgram(entry.programKey), fontWeight: 600 }}>●</span>
-                        <span>{entry.displayName}</span>
-                      </label>
-                    ) : (
-                      entry.displayName
-                    )}
+                    {chartEnabled ? <span style={{ color: colorForProgram(entry.programKey), fontWeight: 600, marginRight: "0.5rem" }}>●</span> : null}
+                    {entry.displayName}
                   </td>
                   <td style={{ borderBottom: `1px solid ${visual.border}`, padding: "0.5rem", textAlign: "right" }}>
                     {formatMs(entry.gpuMs)}

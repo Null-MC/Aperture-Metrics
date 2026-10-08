@@ -11,18 +11,25 @@ export type MetricsSocketState = {
 
 const DEFAULT_WS_URL = "ws://127.0.0.1:17866";
 
-export function useMetricsSocket(): MetricsSocketState {
-  const socketUrl = useMemo(() => {
-    if (typeof window === "undefined") {
-      return DEFAULT_WS_URL;
-    }
+function getSocketUrl(): string {
+  const configuredUrl = import.meta.env.VITE_APERTURE_WS_URL?.trim();
+  if (configuredUrl) {
+    return configuredUrl;
+  }
 
-    const host = window.location.hostname;
-    if (!host || host === "127.0.0.1" || host === "localhost") {
-      return DEFAULT_WS_URL;
-    }
-    return `ws://${host}:17866`;
-  }, []);
+  if (typeof window === "undefined") {
+    return DEFAULT_WS_URL;
+  }
+
+  const host = window.location.hostname;
+  if (!host || host === "127.0.0.1" || host === "localhost") {
+    return DEFAULT_WS_URL;
+  }
+  return `ws://${host}:17866`;
+}
+
+export function useMetricsSocket(): MetricsSocketState {
+  const socketUrl = useMemo(getSocketUrl, []);
 
   const [connected, setConnected] = useState(false);
   const [session, setSession] = useState<string | null>(null);

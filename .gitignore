@@ -8,6 +8,10 @@ dist/
 dist-ssr/
 build/
 
+# Gradle
+.gradle/
+.kotlin/
+
 # Vite Cache (if configured outside node_modules)
 .vite/
 
