@@ -28,7 +28,7 @@ function getSocketUrl(): string {
   return `ws://${host}:17866`;
 }
 
-export function useMetricsSocket(): MetricsSocketState {
+export function useMetricsSocket(enabled = true): MetricsSocketState {
   const socketUrl = useMemo(getSocketUrl, []);
 
   const [connected, setConnected] = useState(false);
@@ -38,6 +38,11 @@ export function useMetricsSocket(): MetricsSocketState {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    if (!enabled) {
+      setConnected(false);
+      return;
+    }
+
     let active = true;
     let reconnectTimer: ReturnType<typeof setTimeout> | null = null;
     let socket: WebSocket | null = null;
@@ -104,7 +109,7 @@ export function useMetricsSocket(): MetricsSocketState {
       }
       socket?.close();
     };
-  }, [socketUrl]);
+  }, [enabled, socketUrl]);
 
   return { connected, session, shaderName, latestFrame, error };
 }

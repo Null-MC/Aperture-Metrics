@@ -37,6 +37,8 @@ coverage/
 # IDEs and Editors
 .vscode/
 !.vscode/extensions.json
+!.vscode/
+!.vscode/launch.json
 .idea/
 *.suo
 *.ntvs*
