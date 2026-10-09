@@ -5,7 +5,30 @@
       "name": "Metrics Viewer (Local)",
       "type": "node-terminal",
       "request": "launch",
-      "command": "npm run dev:local"
+      "command": "npm run dev:local",
+      "serverReadyAction": {
+        "pattern": "listening on|localhost:|http://",
+        "action": "openExternally"
+      }
+    },
+    {
+      "name": "Metrics Viewer (Simulated)",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": "npm run dev:simulate"
+    },
+    {
+      "name": "Integrated Browser Window",
+      "type": "editor-browser",
+      "request": "launch",
+      "url": "http://localhost:17868",
+      "webRoot": "${workspaceFolder}"
+    }
+  ],
+  "compounds": [
+    {
+      "name": "Launch Simulated + Browser",
+      "configurations": ["Metrics Viewer (Simulated)", "Integrated Browser Window"]
     }
   ]
 }

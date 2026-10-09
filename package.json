@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "vite",
     "dev:local": "vite --host 127.0.0.1 --port 17868 --open",
-    "dev:simulate": "vite --mode simulate --host 127.0.0.1 --port 17868 --open",
+    "dev:simulate": "vite --mode simulate --host 127.0.0.1 --port 17868",
     "build": "vite build",
     "preview": "vite preview"
   },
